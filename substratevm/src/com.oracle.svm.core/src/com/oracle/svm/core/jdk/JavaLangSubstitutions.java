@@ -753,6 +753,7 @@ final class BootLoaderStaticUtils {
     }
 
     static final class Helper extends ClassLoader {
+        @Override
         protected Package[] getPackages() {
             return super.getPackages();
         }
