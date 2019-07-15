@@ -50,7 +50,6 @@ import com.oracle.svm.core.posix.headers.Socket;
 import com.oracle.svm.core.posix.headers.Time;
 import com.oracle.svm.core.posix.headers.Unistd;
 import com.oracle.svm.core.posix.headers.linux.LinuxEPoll;
-import com.oracle.svm.core.util.VMError;
 
 @Platforms({Platform.LINUX.class})
 public final class LinuxNIOSubstitutions {
