@@ -1,5 +1,11 @@
 # Version 19.2.0
 
+New features:
+
+* Support locating dynamic libraries relatively using (`rpath`).
+* Preliminary support for compiling to bitcode using the LLVM toolchain.
+  See [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md) for more details.
+
 Improvements:
 
 * Improved display of pointers to foreign objects in the LLVM debugger.
