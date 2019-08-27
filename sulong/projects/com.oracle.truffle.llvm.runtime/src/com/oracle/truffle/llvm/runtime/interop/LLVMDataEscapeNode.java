@@ -32,6 +32,7 @@ package com.oracle.truffle.llvm.runtime.interop;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.llvm.runtime.LLVMVirtualAllocationAddress;
 import com.oracle.truffle.llvm.runtime.interop.LLVMDataEscapeNodeFactory.LLVMDoubleDataEscapeNodeGen;
@@ -45,6 +46,7 @@ import com.oracle.truffle.llvm.runtime.interop.LLVMDataEscapeNodeFactory.LLVMPoi
 import com.oracle.truffle.llvm.runtime.interop.LLVMDataEscapeNodeFactory.LLVMVoidDataEscapeNodeGen;
 import com.oracle.truffle.llvm.runtime.interop.access.LLVMInteropType;
 import com.oracle.truffle.llvm.runtime.interop.convert.ForeignToLLVM.ForeignToLLVMType;
+import com.oracle.truffle.llvm.runtime.library.LLVMNativeLibrary;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMObjectAccess;
@@ -181,6 +183,11 @@ public abstract class LLVMDataEscapeNode extends LLVMNode {
         static int escapingPrimitive(int escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
             return escapingValue;
         }
+
+        @Specialization
+        static int escapingPrimitive(float escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return Float.floatToRawIntBits(escapingValue);
+        }
     }
 
     @GenerateUncached
@@ -189,6 +196,17 @@ public abstract class LLVMDataEscapeNode extends LLVMNode {
         @Specialization
         static long escapingPrimitive(long escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
             return escapingValue;
+        }
+
+        @Specialization
+        static long escapingPrimitive(double escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return Double.doubleToRawLongBits(escapingValue);
+        }
+
+        @Specialization(limit = "3", replaces = "escapingPrimitive")
+        static long escapingPointer(Object escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type,
+                        @CachedLibrary("escapingValue") LLVMNativeLibrary library) {
+            return library.toNativePointer(escapingValue).asNative();
         }
     }
 
@@ -199,6 +217,11 @@ public abstract class LLVMDataEscapeNode extends LLVMNode {
         static float escapingPrimitive(float escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
             return escapingValue;
         }
+
+        @Specialization
+        static float escapingPrimitive(int escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return Float.intBitsToFloat(escapingValue);
+        }
     }
 
     @GenerateUncached
@@ -207,6 +230,17 @@ public abstract class LLVMDataEscapeNode extends LLVMNode {
         @Specialization
         static double escapingPrimitive(double escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
             return escapingValue;
+        }
+
+        @Specialization
+        static double escapingLong(long escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return Double.longBitsToDouble(escapingValue);
+        }
+
+        @Specialization(limit = "3", replaces = "escapingLong")
+        static double escapingPointer(Object escapingValue, LLVMInteropType.Structured type,
+                        @CachedLibrary("escapingValue") LLVMNativeLibrary library) {
+            return escapingLong(library.toNativePointer(escapingValue).asNative(), type);
         }
     }
 
@@ -265,6 +299,16 @@ public abstract class LLVMDataEscapeNode extends LLVMNode {
         @Specialization(guards = {"!isForeign(address)", "type == null"})
         static TruffleObject escapingPointer(LLVMPointer address, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
             return address;
+        }
+
+        @Specialization
+        static LLVMPointer escapingPrimitive(long escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return LLVMNativePointer.create(escapingValue).export(type);
+        }
+
+        @Specialization
+        static LLVMPointer escapingPrimitive(double escapingValue, @SuppressWarnings("unused") LLVMInteropType.Structured type) {
+            return LLVMNativePointer.create(Double.doubleToRawLongBits(escapingValue)).export(type);
         }
 
         @Specialization

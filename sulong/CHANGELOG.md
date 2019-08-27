@@ -1,3 +1,18 @@
+# Version 19.3.0
+
+New features:
+
+* Added `mx extract-bitcode` command for extracting embedded bitcode.
+  Usage: `mx extract-bitcode inputFile.so outputFile.bc`, where `inputFile` can
+  be can be a file of any supported format such as wrapped bitcode or ELF/Mach-O
+  with an embedded bitcode sections.
+
+Improvements:
+
+* Clang and other LLVM tools are no longer required to be installed for building
+  the GraalVM LLVM runtime. Instead, the LLVM distribution bundled with the
+  [Toolchain](docs/TOOLCHAIN.md) is used.
+
 # Version 19.2.0
 
 New features:
@@ -5,6 +20,11 @@ New features:
 * Support locating dynamic libraries relatively using (`rpath`).
 * Preliminary support for compiling to bitcode using the LLVM toolchain.
   See [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md) for more details.
+  *WARNING*: The toolchain is experimental. Functionality may be added,
+  changed or removed without prior notice.
+* Support for simple pointer arithmetics with foreign objects.
+  In addition to offset arithmetics, GraalVM now supports "negated" pointers and
+  simple bitmask operations (typically used for alignment operations).
 
 Improvements:
 

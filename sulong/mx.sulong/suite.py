@@ -22,7 +22,7 @@ suite = {
       "packedResource" : True,
       "urls" : [
         "https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/test-suite-3.2.src.tar.gz",
-        "http://llvm.org/releases/3.2/test-suite-3.2.src.tar.gz",
+        "https://llvm.org/releases/3.2/test-suite-3.2.src.tar.gz",
       ],
       "sha1" : "e370255ca2540bcd66f316fe5b96f459382f3e8a",
     },
@@ -32,6 +32,10 @@ suite = {
           "amd64" : {
             "urls" : ["https://lafo.ssw.uni-linz.ac.at/pub/llvm-org/llvm-llvmorg-8.0.0-4-gd563e33a79-bgae3b177eaa-linux-amd64.tar.gz"],
             "sha1" : "df4c1f784294d02a82d78664064248283bfcc297",
+          },
+          "aarch64" : {
+            "urls" : ["https://lafo.ssw.uni-linz.ac.at/pub/llvm-org/llvm-llvmorg-8.0.0-4-gc5c34548c2-bgcf3eed3444-linux-aarch64.tar.gz"],
+            "sha1" : "64f638c8999d27c7410225e6334be1e277db34aa",
           }
         },
         "darwin" : {
@@ -55,9 +59,7 @@ suite = {
       "packedResource" : True,
       "urls" : [
         "https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/gcc-5.2.0.tar.gz",
-        "http://gd.tuwien.ac.at/gnu/gcc/releases/gcc-5.2.0/gcc-5.2.0.tar.gz",
-        "ftp://ftp.fu-berlin.de/unix/languages/gcc/releases/gcc-5.2.0/gcc-5.2.0.tar.gz",
-        "http://mirrors-usa.go-parts.com/gcc/releases/gcc-5.2.0/gcc-5.2.0.tar.gz",
+        "https://mirrors-usa.go-parts.com/gcc/releases/gcc-5.2.0/gcc-5.2.0.tar.gz",
       ],
       "sha1" : "713211883406b3839bdba4a22e7111a0cff5d09b",
     },
@@ -79,18 +81,18 @@ suite = {
 
   "projects" : {
 
-    "com.oracle.truffle.llvm.test" : {
-      "subDir" : "projects",
+    "com.oracle.truffle.llvm.tests" : {
+      "subDir" : "tests",
       "sourceDirs" : ["src"],
       "dependencies" : [
         "com.oracle.truffle.llvm",
-        "com.oracle.truffle.llvm.pipe",
+        "com.oracle.truffle.llvm.tests.pipe",
         "truffle:TRUFFLE_TCK",
         "mx:JUNIT",
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "javaProperties" : {
         "test.sulongtest.lib" : "<path:SULONG_TEST_NATIVE>/<lib:sulongtest>",
         "test.sulongtest.lib.path" : "<path:SULONG_TEST_NATIVE>",
@@ -100,30 +102,34 @@ suite = {
       "testProject" : True,
       "jacoco" : "exclude",
     },
-    "com.oracle.truffle.llvm.test.native" : {
-      "subDir" : "projects",
+    "com.oracle.truffle.llvm.tests.native" : {
+      "subDir" : "tests",
       "native" : True,
       "vpath" : True,
       "results" : [
         "bin/<lib:sulongtest>",
       ],
+      "buildDependencies" : [
+        "SULONG_LLVM_ORG",
+      ],
       "buildEnv" : {
         "LIBSULONGTEST" : "<lib:sulongtest>",
+        "CLANG" : "<path:SULONG_LLVM_ORG>/bin/clang",
         "OS" : "<os>",
       },
       "license" : "BSD-new",
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.types.test" : {
-      "subDir" : "projects",
+    "com.oracle.truffle.llvm.tests.types" : {
+      "subDir" : "tests",
       "sourceDirs" : ["src"],
       "dependencies" : [
         "com.oracle.truffle.llvm.runtime",
         "mx:JUNIT",
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "testProject" : True,
@@ -136,7 +142,7 @@ suite = {
         "truffle:TRUFFLE_API",
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -149,7 +155,7 @@ suite = {
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -164,7 +170,7 @@ suite = {
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -182,7 +188,7 @@ suite = {
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
       "checkstyleVersion" : "8.8",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -196,21 +202,7 @@ suite = {
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
-      "javaCompliance" : "1.8",
-      "workingSets" : "Truffle, LLVM",
-      "license" : "BSD-new",
-      "jacoco" : "include",
-    },
-
-    "com.oracle.truffle.llvm.nodes" : {
-      "subDir" : "projects",
-      "sourceDirs" : ["src"],
-      "dependencies" : [
-        "com.oracle.truffle.llvm.runtime",
-      ],
-      "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
-      "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -223,7 +215,7 @@ suite = {
         "com.oracle.truffle.llvm.runtime",
        ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
@@ -238,7 +230,7 @@ suite = {
         "SULONG_API",
        ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "javaProperties" : {
         "llvm.toolchainRoot" : "<path:SULONG_BOOTSTRAP_TOOLCHAIN>",
       },
@@ -255,10 +247,23 @@ suite = {
         "sdk:LAUNCHER_COMMON",
        ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
+    },
+
+    "com.oracle.truffle.llvm.tools" : {
+      "subDir" : "projects",
+      "sourceDirs" : ["src"],
+      "dependencies" : [
+        "com.oracle.truffle.llvm.parser",
+      ],
+      "checkstyle" : "com.oracle.truffle.llvm.runtime",
+      "javaCompliance" : "1.8+",
+      "workingSets" : "Truffle, LLVM",
+      "license" : "BSD-new",
+      "jacoco" : "exclude",
     },
 
     "com.oracle.truffle.llvm.toolchain.launchers" : {
@@ -272,7 +277,7 @@ suite = {
         "llvm.home": "<path:SULONG_LIBS>",
       },
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
@@ -320,11 +325,11 @@ suite = {
       "subDir" : "projects",
       "sourceDirs" : ["src"],
       "dependencies" : [
-        "com.oracle.truffle.llvm.nodes",
+        "com.oracle.truffle.llvm.runtime",
         "truffle:ANTLR4",
       ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
@@ -339,40 +344,40 @@ suite = {
         "com.oracle.truffle.llvm.parser",
        ],
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
       "workingSets" : "Truffle, LLVM",
       "license" : "BSD-new",
       "jacoco" : "include",
     },
 
-    "com.oracle.truffle.llvm.pipe" : {
-      "subDir" : "projects",
+    "com.oracle.truffle.llvm.tests.pipe" : {
+      "subDir" : "tests",
       "sourceDirs" : ["src"],
       "jniHeaders" : True,
       "javaProperties" : {
         "test.pipe.lib" : "<path:SULONG_TEST_NATIVE>/<lib:pipe>",
       },
       "checkstyle" : "com.oracle.truffle.llvm.runtime",
-      "javaCompliance" : "1.8",
+      "javaCompliance" : "1.8+",
       "license" : "BSD-new",
       "testProject" : True,
       "defaultBuild" : False,
       "jacoco" : "exclude",
     },
 
-    "com.oracle.truffle.llvm.pipe.native" : {
-      "subDir" : "projects",
+    "com.oracle.truffle.llvm.tests.pipe.native" : {
+      "subDir" : "tests",
       "native" : True,
       "vpath" : True,
       "results" : [
         "bin/<lib:pipe>",
       ],
       "buildDependencies" : [
-        "com.oracle.truffle.llvm.pipe",
+        "com.oracle.truffle.llvm.tests.pipe",
       ],
       "buildEnv" : {
-        "CPPFLAGS" : "-I<jnigen:com.oracle.truffle.llvm.pipe>",
+        "CPPFLAGS" : "-I<jnigen:com.oracle.truffle.llvm.tests.pipe>",
         "LIBPIPE" : "<lib:pipe>",
         "OS" : "<os>",
       },
@@ -394,8 +399,15 @@ suite = {
       "headers" : [
         "include/polyglot.h",
       ],
+      "buildDependencies" : [
+        "SULONG_LLVM_ORG",
+      ],
       "buildEnv" : {
-        "CFLAGS" : "<clangImplicitArgs>",
+        "CFLAGS" : "-Xclang -disable-O0-optnone",
+        "CLANG" : "<path:SULONG_LLVM_ORG>/bin/clang",
+        "CLANGXX" : "<path:SULONG_LLVM_ORG>/bin/clang++",
+        "OPT" : "<path:SULONG_LLVM_ORG>/bin/opt",
+        "LLVM_LINK" : "<path:SULONG_LLVM_ORG>/bin/llvm-link",
         "OS" : "<os>",
       },
       "license" : "BSD-new",
@@ -411,8 +423,10 @@ suite = {
       "buildDependencies" : [
         "truffle:TRUFFLE_NFI_NATIVE",
         "com.oracle.truffle.llvm.libraries.bitcode",
+        "SULONG_LLVM_ORG",
       ],
       "buildEnv" : {
+        "CLANG" : "<path:SULONG_LLVM_ORG>/bin/clang",
         "LIBSULONG" : "<lib:sulong>",
         "LIBPOLYGLOT" : "<lib:polyglot-mock>",
         "CPPFLAGS" : "-I<path:truffle:TRUFFLE_NFI_NATIVE>/include -I<path:com.oracle.truffle.llvm.libraries.bitcode>/include",
@@ -426,7 +440,7 @@ suite = {
       "prefix": "",
     },
 
-    "com.oracle.truffle.llvm.tests.debug" : {
+    "com.oracle.truffle.llvm.tests.debug.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O1", "O0", "O0_MEM2REG"],
@@ -444,7 +458,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.irdebug" : {
+    "com.oracle.truffle.llvm.tests.irdebug.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0"],
@@ -462,7 +476,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.interop" : {
+    "com.oracle.truffle.llvm.tests.interop.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0_MEM2REG"],
@@ -498,7 +512,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.other" : {
+    "com.oracle.truffle.llvm.tests.other.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0_MEM2REG"],
@@ -515,7 +529,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.sulong" : {
+    "com.oracle.truffle.llvm.tests.sulong.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0", "O0_MISC_OPTS", "O1", "O2", "O3", "gcc_O0"],
@@ -529,7 +543,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.bitcode" : {
+    "com.oracle.truffle.llvm.tests.bitcode.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0"],
@@ -542,7 +556,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.sulongavx" : {
+    "com.oracle.truffle.llvm.tests.sulongavx.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O1", "O2", "O3"],
@@ -557,7 +571,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.sulongcpp" : {
+    "com.oracle.truffle.llvm.tests.sulongcpp.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0", "O0_MISC_OPTS", "O1"],
@@ -570,7 +584,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.libc" : {
+    "com.oracle.truffle.llvm.tests.libc.native" : {
       "subDir" : "tests",
       "class" : "SulongTestSuite",
       "variants" : ["O0"],
@@ -611,7 +625,7 @@ suite = {
       "testProject" : True,
       "defaultBuild" : False,
     },
-    "com.oracle.truffle.llvm.tests.bitcodeformat": {
+    "com.oracle.truffle.llvm.tests.bitcodeformat.native": {
       "subDir": "tests",
       "native": True,
       "vpath": True,
@@ -638,30 +652,24 @@ suite = {
       "testProject": True,
       "defaultBuild": False,
     },
-    "com.oracle.truffle.llvm.tests.linker" : {
-      "class" : "GlobNativeProject",
+    "com.oracle.truffle.llvm.tests.linker.native" : {
       "subDir" : "tests",
       "native": True,
       "vpath": True,
       "buildEnv" : {
         "OS" : "<os>",
         "CLANG": "<toolchainGetToolPath:native,CC>",
+        "SRC_DIR": "<path:com.oracle.truffle.llvm.tests.linker.native>",
       },
       "dependencies" : [
         "SULONG_TEST",
         "SULONG_TOOLCHAIN_LAUNCHERS",
         "SULONG_BOOTSTRAP_TOOLCHAIN",
       ],
-      "results" : [
-        "linker/ref.out",
-        "linker/ref.bc",
-        "linker/lib/<libsuffix:*>",
-        "rpath/lib/<libsuffix:*>",
-        "rpath/<libsuffix:*>",
-        "rpath/not-inherited/ref.out",
-        "rpath/not-inherited/ref.bc",
-        "rpath/main-override/ref.out",
-        "rpath/main-override/ref.bc",
+      "results": [
+        "linker",
+        "rpath",
+        "reload",
       ],
       "testProject" : True,
       "defaultBuild" : False,
@@ -735,7 +743,7 @@ suite = {
     "parserTorture" : {
       "subDir" : "tests/gcc",
       "class" : "ExternalTestSuite",
-      "testClasses" : ["com.oracle.truffle.llvm.test.ParserTortureSuite"],
+      "testClasses" : ["com.oracle.truffle.llvm.tests.ParserTortureSuite"],
       "testDir" : "gcc-5.2.0/gcc/testsuite/gcc.c-torture/compile",
       "configDir" : "configs/gcc.c-torture/compile",
       "fileExts" : [".c"],
@@ -758,7 +766,7 @@ suite = {
     "llvm" : {
       "subDir" : "tests/llvm",
       "class" : "ExternalTestSuite",
-      "testClasses" : ["com.oracle.truffle.llvm.test.LLVMSuite"],
+      "testClasses" : ["com.oracle.truffle.llvm.tests.LLVMSuite"],
       "testDir" : "test-suite-3.2.src",
       "fileExts" : [".c", ".cpp", ".C", ".cc", ".m"],
       "native" : True,
@@ -780,7 +788,7 @@ suite = {
     "shootout" : {
       "subDir" : "tests/benchmarksgame",
       "class" : "ExternalTestSuite",
-      "testClasses" : ["com.oracle.truffle.llvm.test.ShootoutsSuite"],
+      "testClasses" : ["com.oracle.truffle.llvm.tests.ShootoutsSuite"],
       "testDir" : "benchmarksgame-2014-08-31/benchmarksgame/bench/",
       "fileExts" : [".c", ".cpp", ".C", ".cc", ".m", ".gcc", ".cint", ".gpp"],
       "native" : True,
@@ -804,7 +812,7 @@ suite = {
     "nwcc" : {
       "subDir" : "tests/nwcc",
       "class" : "ExternalTestSuite",
-      "testClasses" : ["com.oracle.truffle.llvm.test.NWCCSuite"],
+      "testClasses" : ["com.oracle.truffle.llvm.tests.NWCCSuite"],
       "testDir" : "nwcc_0.8.3",
       "fileExts" : [".c"],
       "native" : True,
@@ -959,6 +967,7 @@ suite = {
       },
       "dependencies": [
         "bootstrap-toolchain-launchers",
+        "SULONG_TOOLCHAIN_LAUNCHERS",
       ],
       "distDependencies" : [
         "SULONG_TOOLCHAIN_LAUNCHERS",
@@ -968,11 +977,11 @@ suite = {
 
 
     "SULONG_TEST" : {
-      "subDir" : "projects",
+      "subDir" : "tests",
       "dependencies" : [
-        "com.oracle.truffle.llvm.test",
-        "com.oracle.truffle.llvm.types.test",
-        "com.oracle.truffle.llvm.pipe"
+        "com.oracle.truffle.llvm.tests",
+        "com.oracle.truffle.llvm.tests.types",
+        "com.oracle.truffle.llvm.tests.pipe"
       ],
       "exclude" : [
        "mx:JUNIT"
@@ -990,7 +999,6 @@ suite = {
       },
       "license" : "BSD-new",
       "testDistribution" : True,
-      "defaultBuild" : False,
     },
 
     "SULONG_TEST_NATIVE" : {
@@ -998,8 +1006,8 @@ suite = {
       "platformDependent" : True,
       "output" : "mxbuild/<os>-<arch>/sulong-test-native",
       "dependencies" : [
-        "com.oracle.truffle.llvm.pipe.native",
-        "com.oracle.truffle.llvm.test.native",
+        "com.oracle.truffle.llvm.tests.pipe.native",
+        "com.oracle.truffle.llvm.tests.native",
       ],
       "license" : "BSD-new",
       "testDistribution" : True,
@@ -1010,20 +1018,21 @@ suite = {
       "native" : True,
       "relpath" : True,
       "platformDependent" : True,
-      "output" : "mxbuild/<os>-<arch>/sulong-test-suites",
-      "dependencies" : [
-        "com.oracle.truffle.llvm.tests.bitcode",
-        "com.oracle.truffle.llvm.tests.bitcodeformat",
-        "com.oracle.truffle.llvm.tests.debug",
-        "com.oracle.truffle.llvm.tests.irdebug",
-        "com.oracle.truffle.llvm.tests.interop",
-        "com.oracle.truffle.llvm.tests.other",
-        "com.oracle.truffle.llvm.tests.sulong",
-        "com.oracle.truffle.llvm.tests.sulongavx",
-        "com.oracle.truffle.llvm.tests.sulongcpp",
-        "com.oracle.truffle.llvm.tests.libc",
-        "com.oracle.truffle.llvm.tests.linker",
-      ],
+      "layout" : {
+        "./" : [
+          "dependency:com.oracle.truffle.llvm.tests.bitcode.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.bitcodeformat.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.debug.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.irdebug.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.interop.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.other.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.sulong.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.sulongavx.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.sulongcpp.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.libc.native/*",
+          "dependency:com.oracle.truffle.llvm.tests.linker.native/*",
+        ],
+      },
       "license" : "BSD-new",
       "testDistribution" : True,
       "defaultBuild" : False,
@@ -1065,6 +1074,10 @@ suite = {
         "./": [
           "extracted-dependency:LLVM_ORG",
           "extracted-dependency:LLVM_ORG_COMPILER_RT_LINUX",
+          "file:3rd_party_license_llvm-toolchain.txt",
+        ],
+        "./patches/" : [
+          "file:patches/*"
         ],
       },
       "maven": False,

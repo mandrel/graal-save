@@ -152,6 +152,10 @@ java_base_opens_packages = [
     'java.base/javax.crypto',
     # Reflective access to java.util.Bits.words.
     'java.base/java.util',
+    # Reflective access to java.util.concurrent.atomic.AtomicIntegerFieldUpdater$AtomicIntegerFieldUpdaterImpl.tclass.
+    'java.base/java.util.concurrent.atomic',
+    # Reflective access to sun.security.x509.OIDMap.nameMap
+    'java.base/sun.security.x509',
     'java.base/jdk.internal.logger',]
 GRAAL_COMPILER_FLAGS_MAP['11'].extend(add_opens_from_packages(java_base_opens_packages))
 
@@ -166,8 +170,9 @@ graal_truffle_opens_packages = [
     'org.graalvm.truffle/com.oracle.truffle.api.impl',]
 GRAAL_COMPILER_FLAGS_MAP['11'].extend(add_opens_from_packages(graal_truffle_opens_packages))
 
-# Currently JDK 13 and JDK 11 have the same flags
+# Currently JDK 13, 14 and JDK 11 have the same flags
 GRAAL_COMPILER_FLAGS_MAP['13'] = GRAAL_COMPILER_FLAGS_MAP['11']
+GRAAL_COMPILER_FLAGS_MAP['14'] = GRAAL_COMPILER_FLAGS_MAP['11']
 
 def svm_java_compliance():
     return mx.get_jdk(tag='default').javaCompliance
@@ -293,7 +298,7 @@ def _vm_home(config):
 
 _graalvm_exclude_components = ['gu'] if mx.is_windows() else []  # gu does not work on Windows atm
 _graalvm_config = GraalVMConfig(disable_libpolyglot=True,
-                                force_bash_launchers=['polyglot', 'native-image-configure'],
+                                force_bash_launchers=['polyglot', 'native-image-configure', 'gu'],
                                 skip_libraries=['native-image-agent'],
                                 exclude_components=_graalvm_exclude_components)
 _graalvm_jvm_config = GraalVMConfig(disable_libpolyglot=True,
@@ -357,7 +362,7 @@ def vm_executable_path(executable, config):
 def native_image_context(common_args=None, hosted_assertions=True, native_image_cmd='', config=None, build_if_missing=False):
     config = config or graalvm_config()
     common_args = [] if common_args is None else common_args
-    base_args = ['--no-fallback', '-H:+EnforceMaxRuntimeCompileMethods']
+    base_args = ['--no-fallback', '-H:+EnforceMaxRuntimeCompileMethods', '-H:+TraceClassInitialization']
     base_args += ['-H:Path=' + svmbuild_dir()]
     has_server = mx.get_os() != 'windows'
     if mx.get_opts().verbose:
@@ -692,13 +697,12 @@ def _helloworld(native_image, javac_command, path, args):
             stdout = os.dup(1)  # save original stdout
             pout, pin = os.pipe()
             os.dup2(pin, 1)  # connect stdout to pipe
-            run_main = 'run_main' if mx.get_os() != 'windows' else 'main'
             os.environ[envkey] = output
-            getattr(lib, run_main)(1, 'dummy')  # call run_main of shared lib
+            lib.run_main(1, 'dummy')  # call run_main of shared lib
             call_stdout = os.read(pout, 120)  # get pipe contents
             actual_output.append(call_stdout)
             os.dup2(stdout, 1)  # restore original stdout
-            mx.log("Stdout from calling {} in shared object {}:".format(run_main, so_name))
+            mx.log('Stdout from calling run_main in shared object {}:'.format(so_name))
             mx.log(call_stdout)
             actual_output = list(map(_decode, actual_output))
         finally:
@@ -918,6 +922,7 @@ if 'LIBGRAAL' in os.environ:
                     '--initialize-at-build-time',
                     '-H:-UseServiceLoaderFeature',
                     '-H:+AllowFoldMethods',
+                    '-H:+ReportExceptionStackTraces',
                     '-Djdk.vm.ci.services.aot=true',
                     '-Dtruffle.TruffleRuntime='
                 ],

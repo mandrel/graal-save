@@ -74,16 +74,19 @@ public final class OptimizedDirectCallNode extends DirectCallNode {
 
     @Override
     public boolean isInlinable() {
+        CompilerAsserts.neverPartOfCompilation();
         return true;
     }
 
     @Override
     public void forceInlining() {
+        CompilerAsserts.neverPartOfCompilation();
         inliningForced = true;
     }
 
     @Override
     public boolean isInliningForced() {
+        CompilerAsserts.neverPartOfCompilation();
         return inliningForced;
     }
 
@@ -125,7 +128,7 @@ public final class OptimizedDirectCallNode extends DirectCallNode {
         if (calls == 1) {
             getCurrentCallTarget().incrementKnownCallSites();
         }
-        TruffleSplittingStrategy.beforeCall(this, OptimizedCallTarget.runtime().getTvmci());
+        TruffleSplittingStrategy.beforeCall(this);
     }
 
     /** Used by the splitting strategy to install new targets. */
@@ -147,12 +150,12 @@ public final class OptimizedDirectCallNode extends DirectCallNode {
 
             if (callCount >= 1) {
                 currentTarget.decrementKnownCallSites();
-                if (!TruffleRuntimeOptions.getValue(SharedTruffleRuntimeOptions.TruffleLegacySplitting)) {
+                if (!currentTarget.getOptionValue(PolyglotCompilerOptions.LegacySplitting)) {
                     currentTarget.removeKnownCallSite(this);
                 }
                 splitTarget.incrementKnownCallSites();
             }
-            if (!TruffleRuntimeOptions.getValue(SharedTruffleRuntimeOptions.TruffleLegacySplitting)) {
+            if (!currentTarget.getOptionValue(PolyglotCompilerOptions.LegacySplitting)) {
                 splitTarget.addKnownCallNode(this);
             }
 
@@ -167,7 +170,7 @@ public final class OptimizedDirectCallNode extends DirectCallNode {
 
     @Override
     public boolean cloneCallTarget() {
-        TruffleSplittingStrategy.forceSplitting(this, OptimizedCallTarget.runtime().getTvmci());
+        TruffleSplittingStrategy.forceSplitting(this);
         return true;
     }
 }

@@ -32,6 +32,8 @@ package com.oracle.truffle.llvm.toolchain.launchers.common;
 import org.graalvm.polyglot.Engine;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -114,11 +116,21 @@ public class Driver {
         if (earlyExit) {
             System.exit(0);
         }
-        ProcessBuilder pb = new ProcessBuilder(toolArgs).inheritIO();
+        ProcessBuilder pb = new ProcessBuilder(toolArgs);
+        if (verbose) {
+            // do no filter input/output streams if in verbose mode
+            setupRedirectsDefault(pb);
+        } else {
+            setupRedirects(pb);
+        }
         Process p = null;
         try {
             // start process
             p = pb.start();
+            if (!verbose) {
+                // process IO (if not in verbose mode)
+                processIO(p.getInputStream(), p.getOutputStream(), p.getErrorStream());
+            }
             // wait for process termination
             p.waitFor();
             // set exit code
@@ -138,6 +150,18 @@ public class Driver {
         }
     }
 
+    @SuppressWarnings("unused")
+    protected void processIO(InputStream inputStream, OutputStream outputStream, InputStream errorStream) {
+    }
+
+    protected ProcessBuilder setupRedirects(ProcessBuilder pb) {
+        return setupRedirectsDefault(pb);
+    }
+
+    private static ProcessBuilder setupRedirectsDefault(ProcessBuilder pb) {
+        return pb.inheritIO();
+    }
+
     private void printMissingToolMessage() {
         System.err.println("Tool execution failed. Are you sure the toolchain is available at " + getLLVMBinDir().getParent());
         System.err.println("You can install it via GraalVM updater: `gu install llvm-toolchain`");
@@ -149,6 +173,8 @@ public class Driver {
         if (help) {
             System.out.println("##################################################");
             System.out.println("This it the the GraalVM wrapper script for " + getTool());
+            System.out.println();
+            System.out.println(">>> WARNING: This tool is experimental. Functionality may be added, changed or removed without prior notice. <<<");
             System.out.println();
             System.out.println("Its purpose is to make it easy to compile native projects to be used with");
             System.out.println("GraalVM's LLVM IR engine (bin/lli).");

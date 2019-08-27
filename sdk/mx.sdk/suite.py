@@ -41,7 +41,7 @@
 suite = {
   "mxversion" : "5.223.0",
   "name" : "sdk",
-  "version" : "19.2.0",
+  "version" : "19.3.0",
   "release" : False,
   "sourceinprojectwhitelist" : [],
   "url" : "https://github.com/oracle/graal",
@@ -137,10 +137,22 @@ suite = {
       ],
       "exports" : [
         "<package-info>",  # exports all packages containing package-info.java
+        "org.graalvm.nativeimage.impl.clinit",  # class initialization instrumentation
       ],
       "checkstyle" : "org.graalvm.word",
       "javaCompliance" : "8+",
       "workingSets" : "API,SDK",
+    },
+    "org.graalvm.nativeimage.test" : {
+      "subDir" : "src",
+      "sourceDirs" : ["src"],
+      "dependencies" : [
+        "mx:JUNIT",
+        "org.graalvm.nativeimage"
+      ],
+      "javaCompliance" : "8+",
+      "workingSets" : "SDK",
+      "checkstyle" : "org.graalvm.word",
     },
     "org.graalvm.launcher" : {
       "subDir" : "src",
@@ -229,6 +241,7 @@ suite = {
       "subDir" : "src",
       "dependencies" : [
         "org.graalvm.collections.test",
+        "org.graalvm.nativeimage.test",
         "org.graalvm.launcher.test",
       ],
       "distDependencies" : [

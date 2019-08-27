@@ -204,6 +204,10 @@ public interface LIRGeneratorTool extends DiagnosticLIRGeneratorTool, ValueKindF
 
     void emitMove(AllocatableValue dst, Value src);
 
+    Variable emitReadRegister(Register register, ValueKind<?> kind);
+
+    void emitWriteRegister(Register dst, Value src, ValueKind<?> wordStamp);
+
     void emitMoveConstant(AllocatableValue dst, Constant src);
 
     Variable emitAddress(AllocatableValue stackslot);
@@ -275,10 +279,10 @@ public interface LIRGeneratorTool extends DiagnosticLIRGeneratorTool, ValueKindF
         throw GraalError.unimplemented("String.compareTo substitution is not implemented on this architecture");
     }
 
-    Variable emitArrayEquals(JavaKind kind, Value array1, Value array2, Value length, int constantLength, boolean directPointers);
+    Variable emitArrayEquals(JavaKind kind, Value array1, Value array2, Value length, boolean directPointers);
 
     @SuppressWarnings("unused")
-    default Variable emitArrayEquals(JavaKind kind1, JavaKind kind2, Value array1, Value array2, Value length, int constantLength, boolean directPointers) {
+    default Variable emitArrayEquals(JavaKind kind1, JavaKind kind2, Value array1, Value array2, Value length, boolean directPointers) {
         throw GraalError.unimplemented("Array.equals with different types substitution is not implemented on this architecture");
     }
 
@@ -348,5 +352,10 @@ public interface LIRGeneratorTool extends DiagnosticLIRGeneratorTool, ValueKindF
 
     default Value emitReadReturnAddress(Stamp wordStamp, int returnAddressSize) {
         return emitMove(StackSlot.get(getLIRKind(wordStamp), -returnAddressSize, true));
+    }
+
+    @SuppressWarnings("unused")
+    default void emitZeroMemory(Value address, Value length) {
+        throw GraalError.unimplemented("Bulk zeroing is not implemented on this architecture");
     }
 }

@@ -4,7 +4,7 @@ suite = {
   "sourceinprojectwhitelist" : [],
 
   "groupId" : "org.graalvm.compiler",
-  "version" : "19.2.0",
+  "version" : "19.3.0",
   "release" : False,
   "url" : "http://www.graalvm.org/",
   "developer" : {
@@ -79,7 +79,6 @@ suite = {
     "DACAPO_SCALA" : {
       "urls" : [
         "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/dacapo-scala-0.1.0-20120216.jar",
-        "http://repo.scalabench.org/snapshots/org/scalabench/benchmarks/scala-benchmark-suite/0.1.0-SNAPSHOT/scala-benchmark-suite-0.1.0-20120216.103539-3.jar",
       ],
       "sha1" : "59b64c974662b5cf9dbd3cf9045d293853dd7a51",
     },
@@ -87,7 +86,7 @@ suite = {
     "DACAPO_D3S" : {
       "urls" : [
         "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/dacapo-9.12-d3s.jar",
-        "http://d3s.mff.cuni.cz/software/benchmarking/files/dacapo-9.12-d3s.jar",
+        "https://d3s.mff.cuni.cz/software/benchmarking/files/dacapo-9.12-d3s.jar",
       ],
       "sha1" : "b072de027141ac81ab5d48706949fda86de62468",
     },
@@ -619,6 +618,17 @@ suite = {
       "multiReleaseJarVersion" : "13",
       "checkstyle" : "org.graalvm.compiler.graph",
       "javaCompliance" : "13+",
+      "workingSets" : "Graal,HotSpot",
+    },
+
+    "org.graalvm.compiler.hotspot.jdk14" : {
+      "subDir" : "src",
+      "sourceDirs" : ["src"],
+      "dependencies": ["org.graalvm.compiler.hotspot"],
+      "overlayTarget" : "org.graalvm.compiler.hotspot",
+      "multiReleaseJarVersion" : "14",
+      "checkstyle" : "org.graalvm.compiler.graph",
+      "javaCompliance" : "14+",
       "workingSets" : "Graal,HotSpot",
     },
 
@@ -1192,6 +1202,7 @@ suite = {
       "dependencies" : [
         "org.graalvm.compiler.api.replacements",
         "org.graalvm.compiler.lir",
+        "sdk:GRAAL_SDK",
       ],
       "checkstyle" : "org.graalvm.compiler.graph",
       "javaCompliance" : "8+",

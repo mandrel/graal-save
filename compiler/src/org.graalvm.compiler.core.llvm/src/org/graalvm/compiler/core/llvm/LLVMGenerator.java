@@ -66,6 +66,7 @@ import org.graalvm.compiler.core.llvm.LLVMUtils.LLVMVariable;
 import org.graalvm.compiler.graph.NodeSourcePosition;
 import org.graalvm.compiler.lir.LIRFrameState;
 import org.graalvm.compiler.lir.LIRInstruction;
+import org.graalvm.compiler.lir.LIRValueUtil;
 import org.graalvm.compiler.lir.LabelRef;
 import org.graalvm.compiler.lir.StandardOp;
 import org.graalvm.compiler.lir.SwitchStrategy;
@@ -80,11 +81,11 @@ import org.graalvm.compiler.nodes.cfg.Block;
 import org.graalvm.compiler.phases.util.Providers;
 
 import jdk.vm.ci.aarch64.AArch64Kind;
+import jdk.vm.ci.code.CallingConvention;
 import jdk.vm.ci.code.CodeCacheProvider;
 import jdk.vm.ci.code.Register;
 import jdk.vm.ci.code.RegisterAttributes;
 import jdk.vm.ci.code.RegisterConfig;
-import jdk.vm.ci.code.RegisterValue;
 import jdk.vm.ci.code.StackSlot;
 import jdk.vm.ci.code.TargetDescription;
 import jdk.vm.ci.meta.AllocatableValue;
@@ -99,7 +100,7 @@ import jdk.vm.ci.meta.ResolvedJavaType;
 import jdk.vm.ci.meta.Value;
 import jdk.vm.ci.meta.ValueKind;
 
-public class LLVMGenerator implements LIRGeneratorTool {
+public abstract class LLVMGenerator implements LIRGeneratorTool {
     private final ArithmeticLLVMGenerator arithmetic;
     protected final LLVMIRBuilder builder;
     private final LIRKindTool lirKindTool;
@@ -159,7 +160,7 @@ public class LLVMGenerator implements LIRGeneratorTool {
         return basicBlockMap.get(begin);
     }
 
-    LLVMBasicBlockRef getBlockEnd(Block block) {
+    public LLVMBasicBlockRef getBlockEnd(Block block) {
         return (splitBlockEndMap.containsKey(block)) ? splitBlockEndMap.get(block) : getBlock(block);
     }
 
@@ -172,35 +173,37 @@ public class LLVMGenerator implements LIRGeneratorTool {
         if (stamp instanceof RawPointerStamp) {
             return builder.rawPointerType();
         }
-        return builder.getLLVMType(getTypeKind(stamp.javaType(getMetaAccess())));
+        return builder.getLLVMType(getTypeKind(stamp.javaType(getMetaAccess()), false));
     }
 
-    protected JavaKind getTypeKind(@SuppressWarnings("unused") ResolvedJavaType type) {
+    protected JavaKind getTypeKind(@SuppressWarnings("unused") ResolvedJavaType type, @SuppressWarnings("unused") boolean forMainFunction) {
         throw unimplemented();
     }
 
     public LLVMValueRef getFunction(ResolvedJavaMethod method) {
-        LLVMTypeRef functionType = getLLVMFunctionType(method);
+        LLVMTypeRef functionType = getLLVMFunctionType(method, false);
         return builder.getFunction(getFunctionName(method), functionType);
     }
+
+    public abstract void allocateRegisterSlots();
 
     public String getFunctionName(ResolvedJavaMethod method) {
         return method.getName();
     }
 
-    LLVMTypeRef getLLVMFunctionReturnType(ResolvedJavaMethod method) {
+    LLVMTypeRef getLLVMFunctionReturnType(ResolvedJavaMethod method, boolean forMainFunction) {
         ResolvedJavaType returnType = method.getSignature().getReturnType(null).resolve(null);
-        return builder.getLLVMStackType(getTypeKind(returnType));
+        return builder.getLLVMStackType(getTypeKind(returnType, forMainFunction));
     }
 
-    private LLVMTypeRef[] getLLVMFunctionArgTypes(ResolvedJavaMethod method) {
+    protected LLVMTypeRef[] getLLVMFunctionArgTypes(ResolvedJavaMethod method, boolean forMainFunction) {
         ResolvedJavaType receiver = method.hasReceiver() ? method.getDeclaringClass() : null;
         JavaType[] parameterTypes = method.getSignature().toParameterTypes(receiver);
-        return Arrays.stream(parameterTypes).map(type -> builder.getLLVMStackType(getTypeKind(type.resolve(null)))).toArray(LLVMTypeRef[]::new);
+        return Arrays.stream(parameterTypes).map(type -> builder.getLLVMStackType(getTypeKind(type.resolve(null), forMainFunction))).toArray(LLVMTypeRef[]::new);
     }
 
-    public LLVMTypeRef getLLVMFunctionType(ResolvedJavaMethod method) {
-        return builder.functionType(getLLVMFunctionReturnType(method), getLLVMFunctionArgTypes(method));
+    public LLVMTypeRef getLLVMFunctionType(ResolvedJavaMethod method, boolean forMainFunction) {
+        return builder.functionType(getLLVMFunctionReturnType(method, forMainFunction), getLLVMFunctionArgTypes(method, forMainFunction));
     }
 
     private long nextConstantId = 0L;
@@ -429,20 +432,15 @@ public class LLVMGenerator implements LIRGeneratorTool {
 
     @Override
     public Variable emitLogicCompareAndSwap(LIRKind accessKind, Value address, Value expectedValue, Value newValue, Value trueValue, Value falseValue) {
-        builder.buildCmpxchg(getVal(address), getVal(expectedValue), getVal(newValue));
-        /* builder.buildExtractValue(cas, 1); */
-        /*
-         * Hack for singlethreaded programs, as structures containing tracked pointers cause
-         * statepoint generation to fail
-         */
-        LLVMValueRef success = builder.constantBoolean(true);
+        LLVMValueRef success = builder.buildLogicCmpxchg(getVal(address), getVal(expectedValue), getVal(newValue));
         LLVMValueRef result = builder.buildSelect(success, getVal(trueValue), getVal(falseValue));
         return new LLVMVariable(result);
     }
 
     @Override
     public Value emitValueCompareAndSwap(LIRKind accessKind, Value address, Value expectedValue, Value newValue) {
-        throw unimplemented();
+        LLVMValueRef result = builder.buildValueCmpxchg(getVal(address), getVal(expectedValue), getVal(newValue));
+        return new LLVMVariable(result);
     }
 
     @Override
@@ -451,7 +449,7 @@ public class LLVMGenerator implements LIRGeneratorTool {
     }
 
     @Override
-    public Variable emitForeignCall(ForeignCallLinkage linkage, LIRFrameState state, Value... args) {
+    public Variable emitForeignCall(ForeignCallLinkage linkage, LIRFrameState state, Value... arguments) {
         ResolvedJavaMethod targetMethod = findForeignCallTarget(linkage.getDescriptor());
 
         state.initDebugInfo(null, false);
@@ -459,15 +457,18 @@ public class LLVMGenerator implements LIRGeneratorTool {
         generationResult.recordDirectCall(targetMethod, patchpointId, state.debugInfo());
 
         LLVMValueRef callee = getFunction(targetMethod);
-        LLVMValueRef[] arguments = Arrays.stream(args).map(LLVMUtils::getVal).toArray(LLVMValueRef[]::new);
+        LLVMValueRef[] args = Arrays.stream(arguments).map(LLVMUtils::getVal).toArray(LLVMValueRef[]::new);
+        LLVMValueRef[] callArguments = getCallArguments(args, getCallingConventionType(linkage.getOutgoingCallingConvention()), targetMethod);
 
-        LLVMValueRef call = builder.buildCall(callee, patchpointId, arguments);
-        return (isVoidType(getLLVMFunctionReturnType(targetMethod))) ? null : new LLVMVariable(call);
+        LLVMValueRef call = builder.buildCall(callee, patchpointId, callArguments);
+        return (isVoidType(getLLVMFunctionReturnType(targetMethod, false))) ? null : new LLVMVariable(call);
     }
 
-    protected ResolvedJavaMethod findForeignCallTarget(@SuppressWarnings("unused") ForeignCallDescriptor descriptor) {
-        throw unimplemented();
-    }
+    protected abstract CallingConvention.Type getCallingConventionType(CallingConvention callingConvention);
+
+    public abstract LLVMValueRef[] getCallArguments(LLVMValueRef[] args, CallingConvention.Type callType, ResolvedJavaMethod targetMethod);
+
+    protected abstract ResolvedJavaMethod findForeignCallTarget(@SuppressWarnings("unused") ForeignCallDescriptor descriptor);
 
     @Override
     public RegisterAttributes attributes(Register register) {
@@ -485,11 +486,6 @@ public class LLVMGenerator implements LIRGeneratorTool {
             return (LLVMVariable) input;
         } else if (input instanceof LLVMValueWrapper) {
             return new LLVMVariable(getVal(input));
-        } else if (input instanceof RegisterValue) {
-            RegisterValue reg = (RegisterValue) input;
-            assert reg.getRegister().equals(getRegisterConfig().getFrameRegister());
-            LLVMValueRef stackPointer = builder.buildReadRegister(builder.register(getRegisterConfig().getFrameRegister().name));
-            return new LLVMVariable(stackPointer);
         }
         throw shouldNotReachHere("Unknown move input");
     }
@@ -574,11 +570,16 @@ public class LLVMGenerator implements LIRGeneratorTool {
                 }
             } else if (returnsEnum && javaKind == JavaKind.Long) {
                 /* Enum values are returned as long */
-                retVal = builder.buildIntToPtr(retVal, builder.rawPointerType());
-                retVal = builder.buildRegisterObject(retVal);
+                retVal = convertEnumReturnValue(retVal);
             }
             builder.buildRet(retVal);
         }
+    }
+
+    protected LLVMValueRef convertEnumReturnValue(LLVMValueRef longValue) {
+        LLVMValueRef retVal = builder.buildIntToPtr(longValue, builder.rawPointerType());
+        retVal = builder.buildRegisterObject(retVal);
+        return retVal;
     }
 
     void indent() {
@@ -722,7 +723,7 @@ public class LLVMGenerator implements LIRGeneratorTool {
     }
 
     @Override
-    public Variable emitArrayEquals(JavaKind kind, Value array1, Value array2, Value length, int constantLength, boolean directPointers) {
+    public Variable emitArrayEquals(JavaKind kind, Value array1, Value array2, Value length, boolean directPointers) {
         LLVMTypeRef elemType = builder.getLLVMType(kind);
 
         LLVMValueRef inArray1;
@@ -741,7 +742,7 @@ public class LLVMGenerator implements LIRGeneratorTool {
             inArray2 = builder.buildGEP(inArray2, builder.constantInt(arrayBaseOffset));
             inArray2 = builder.buildBitcast(inArray2, builder.pointerType(elemType, false));
         }
-
+        int constantLength = LIRValueUtil.isJavaConstant(length) ? LIRValueUtil.asJavaConstant(length).asInt() : -1;
         if (constantLength == 0) {
             return new LLVMVariable(builder.constantBoolean(true));
         }
@@ -1000,12 +1001,17 @@ public class LLVMGenerator implements LIRGeneratorTool {
     }
 
     @Override
-    public StandardOp.SaveRegistersOp createZapRegisters(Register[] zappedRegisters, JavaConstant[] zapValues) {
+    public StandardOp.ZapRegistersOp createZapRegisters(Register[] zappedRegisters, JavaConstant[] zapValues) {
         throw unimplemented();
     }
 
     @Override
-    public StandardOp.SaveRegistersOp createZapRegisters() {
+    public StandardOp.ZapRegistersOp createZapRegisters(Register[] zappedRegisters) {
+        throw unimplemented();
+    }
+
+    @Override
+    public StandardOp.ZapRegistersOp createZapRegisters() {
         throw unimplemented();
     }
 
