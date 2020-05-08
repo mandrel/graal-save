@@ -1,0 +1,42 @@
+name: Repo Sync
+
+on:
+  push:
+    branches: [ mandrel-master ]
+  schedule:
+  # Runs every 10 minutes
+  - cron:  "*/10 * * * *"
+
+jobs:
+  master:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Master branch
+      uses: actions/checkout@v2
+      with:
+        ref: master
+        fetch-depth: 0
+    - name: Sync Master branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git remote add upstream https://github.com/oracle/graal
+        git pull --quiet upstream master
+        git push --quiet origin master
+
+  mandrel-master:
+    needs: master
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Mandrel Master branch
+      uses: actions/checkout@v2
+      with:
+        ref: mandrel-master
+        fetch-depth: 0
+    - name: Sync Mandrel Master branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git fetch origin master
+        git rebase origin/master
+        git push --force-with-lease --quiet origin mandrel-master
