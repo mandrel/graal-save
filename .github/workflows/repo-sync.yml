@@ -6,7 +6,7 @@ on:
     - mandrel-master
     - mandrel-20.1
   schedule:
-  - cron:  '*/15 * * * *'
+    - cron:  '*/15 * * * *'
 
 jobs:
   oracle-master:
