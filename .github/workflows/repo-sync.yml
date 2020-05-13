@@ -48,7 +48,7 @@ jobs:
     - name: Checkout 20.1 branch
       uses: actions/checkout@v2
       with:
-        ref: 20.1
+        ref: release/graal-vm/20.1
         fetch-depth: 0
     - name: Sync 20.1 branch
       run: |
