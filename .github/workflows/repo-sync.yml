@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - mandrel-master
-
+    - mandrel-20.1
   schedule:
   - cron:  '*/15 * * * *'
 
@@ -41,3 +41,36 @@ jobs:
         git fetch origin master
         git rebase origin/master
         git push --force-with-lease --quiet origin mandrel-master
+
+  20.1:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout 20.1 branch
+      uses: actions/checkout@v2
+      with:
+        ref: 20.1
+        fetch-depth: 0
+    - name: Sync 20.1 branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git remote add upstream https://github.com/oracle/graal
+        git pull --quiet upstream release/graal-vm/20.1
+        git push --quiet origin release/graal-vm/20.1
+
+  mandrel-20.1:
+    needs: 20.1
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Mandrel 20.1 branch
+      uses: actions/checkout@v2
+      with:
+        ref: mandrel-20.1
+        fetch-depth: 0
+    - name: Sync Mandrel 20.1 branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git fetch origin release/graal-vm/20.1
+        git rebase origin/release/graal-vm/20.1
+        git push --force-with-lease --quiet origin mandrel-20.1
