@@ -42,7 +42,7 @@ jobs:
         git rebase origin/master
         git push --force-with-lease --quiet origin mandrel-master
 
-  oracle-20.1:
+  oracle-20-1:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout 20.1 branch
@@ -58,8 +58,8 @@ jobs:
         git pull --quiet upstream release/graal-vm/20.1
         git push --quiet origin release/graal-vm/20.1
 
-  mandrel-20.1:
-    needs: oracle-20.1
+  mandrel-20-1:
+    needs: oracle-20-1
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Mandrel 20.1 branch
