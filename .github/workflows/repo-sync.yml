@@ -2,10 +2,11 @@ name: Repo Sync
 
 on:
   push:
-    branches: [ mandrel-master ]
+    branches:
+    - mandrel-master
+
   schedule:
-  # Runs every 10 minutes
-  - cron:  "*/10 * * * *"
+  - cron:  '*/15 * * * *'
 
 jobs:
   master:
