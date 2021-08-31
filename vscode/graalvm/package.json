@@ -345,7 +345,7 @@
 	},
 	"dependencies": {
 		"sax": "^1.2.4",
-		"tar": "^6.0.1",
+		"tar": "^6.1.9",
 		"vscode-chrome-debug-core": "^6.8.8",
 		"vscode-languageclient": "^5.2.1"
 	},
