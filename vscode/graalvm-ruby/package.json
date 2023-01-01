@@ -110,11 +110,11 @@
 		"@types/mocha": "^7.0.2",
 		"@types/node": "^12.12.30",
 		"@types/vscode": "1.33.0",
-		"ts-loader": "^6.2.1",
+		"ts-loader": "^9.4.2",
 		"tslint": "^6.1.0",
 		"typescript": "^3.8.3",
-		"webpack": "^4.42.0",
-		"webpack-cli": "^3.3.11"
+		"webpack": "^5.75.0",
+		"webpack-cli": "^5.0.1"
 	},
 	"extensionDependencies": [
 		"oracle-labs-graalvm.graalvm",
